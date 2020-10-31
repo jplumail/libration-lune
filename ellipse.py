@@ -1,6 +1,7 @@
-# Régression elliptique se basant sur la méthode des moindres carrés totaux
-# https://fr.wikipedia.org/wiki/R%C3%A9gression_elliptique#M%C3%A9thode_des_moindres_carr%C3%A9s_totaux
-
+"""
+Régression elliptique se basant sur la méthode des moindres carrés totaux
+voir : https://fr.wikipedia.org/wiki/R%C3%A9gression_elliptique#M%C3%A9thode_des_moindres_carr%C3%A9s_totaux
+"""
 
 from cercle import regression_circulaire
 
@@ -12,25 +13,29 @@ import matplotlib.pyplot as plt
 
 
 def phis(x, y, cx, cy, theta):
-    t = np.arctan2(y - cy, x - cx) - theta  #
+    """
+    Initialise les angles de l'équation paramétrique de chaque point
+    pour calculer les vecteurs erreur
+    Entrées :
+        - x, y : points pour la régression (taille N)
+        - cx, cy : centre de l'ellipse
+        - theta : inclinaison de l'ellipse
+    Sortie : angles en radians (taille N)
+    """
+    t = np.arctan2(y - cy, x - cx) - theta
     return t
 
 
-def residus(z, x, y):
-    cx, cy, a, b, theta, phis = z[0], z[1], z[2], z[3], z[4], z[5:]
-    centre = np.array([[cx], [cy]])
-    mat_rot = np.array(
-        [[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]]
-    )
-
-    coords_ellipse = centre + mat_rot @ np.vstack((a * np.cos(phis), b * np.sin(phis)))
-    vecteurs_erreur = coords_ellipse - np.vstack((x, y))
-    residus = np.linalg.norm(vecteurs_erreur, axis=0)
-
-    return np.square(residus)
-
-
 def equParametrique_ell(cx, cy, a, b, theta, t):
+    '''
+    Calcule les coordonnées d'un point sur une ellipse paramétrée
+    Entrées :
+        - cx, cy : centre de l'ellipse
+        - a, b : longueurs des demi-grands axes
+        - theta : inclinaison
+        - t : angle du point (peut être un vecteur d'angless)
+    Sortie : coordonnée du point
+    '''
     centre = np.array([[cx], [cy]])
     mat_rot = np.array(
         [[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]]
@@ -39,8 +44,28 @@ def equParametrique_ell(cx, cy, a, b, theta, t):
     return coords_ellipse
 
 
+def residus(z, x, y):
+    """
+    Calcule les résidus
+    Entrées : 
+        - z : paramètres de l'ellipse (centre, demi axes, inclinaisons, angles)
+        - x, y : coordonnées des points
+    Sortie : résidus au carré
+    """
+    cx, cy, a, b, theta, phis = z[0], z[1], z[2], z[3], z[4], z[5:]
+    coords_ellipse = equParametrique_ell(cx, cy, a, b, theta, phis)
+    vecteurs_erreur = coords_ellipse - np.vstack((x, y))
+    residus = np.linalg.norm(vecteurs_erreur, axis=0)
+
+    return np.square(residus)
+
+
 def masque_ell(xe, ye, xd, yd, R):
-    # Calcule à partir du diamètre a du cratère, de son centre (xe,ye), du centre (xd,yd) et du rayon R du disque lunaire l'inclinaison theta et la
+    """
+    Calcule à partir du centre (xe,ye) de l'ellipse,
+    du centre (xd,yd) et du rayon R du disque lunaire
+    l'inclinaison theta et l'aplatissement de l'ellipse
+    """
     x_prime = xe - xd
     y_prime = yd - ye
     cos_beta = np.sqrt(R ** 2 - np.square(x_prime) - np.square(y_prime)) / R
@@ -49,31 +74,36 @@ def masque_ell(xe, ye, xd, yd, R):
 
 
 def residus2(z, x, y, xd, yd, R):
+    """
+    Calcule les résidus avec moins de paramètres de régression
+    Entrées : 
+        - z : paramètres de l'ellipse (centre, un seul demi axe, angles)
+        - x, y : coordonnées des points
+    Sortie : résidus au carré
+    """
     cx, cy, a, phis = z[0], z[1], z[2], z[3:]
 
     theta, cos_beta = masque_ell(cx, cy, xd, yd, R)
     b = a * cos_beta
-    centre = np.array([[cx], [cy]])
-    mat_rot = np.array(
-        [[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]]
-    )
 
-    coords_ellipse = centre + mat_rot @ np.vstack((a * np.cos(phis), b * np.sin(phis)))
+    coords_ellipse = equParametrique_ell(cx, cy, a, b, theta, phis)
     vecteurs_erreur = coords_ellipse - np.vstack((x, y))
     residus = np.linalg.norm(vecteurs_erreur, axis=0)
 
     return np.square(residus)
 
 
-def regression_elliptique(
-    x, y, cx=0, cy=0, a=1, b=1, theta=0, directions=None, verbose=0
-):
+def regression_elliptique(x, y, cx=0, cy=0, a=1, b=1, theta=0, phis=None):
+    """
+    Régression elliptique avec comme variables le centre de l'ellipse, ses demi-axes et son inclinaison
+    Entrées :
+        - x, y : points qui vont servir à la régression
+    Sorties :
+        - res : résultat de la régression (centre de l'ellipse et demi-grand axe "horizontal")
+    """
     # Initialisation des paramètres
     N = len(x)
-    if directions is None:
-        phis = np.zeros((N))
-    else:
-        phis = directions.copy()
+    if phis is None: phis = np.zeros((N))
     z0 = np.append([cx, cy, a, b, theta], phis)
 
     # méthode des moindres carrés
@@ -81,15 +111,20 @@ def regression_elliptique(
         [-np.inf] * 4 + [-np.pi] * (N + 1),
         [np.inf] * 4 + [np.pi] * (N + 1),
     )  # je sais pas si cest très utile de restreindre les paramètres...
-    res = optimize.least_squares(
-        residus, z0, args=(x, y), bounds=bounds, verbose=verbose, max_nfev=50
-    )
+    res = optimize.least_squares(residus, z0, args=(x, y), bounds=bounds, max_nfev=50)
     return res
 
 
 def regression_elliptique2(x, y):
-    # Dans cette fonction, on initialise les paramètres de la régression elliptique
-    # en faisant d'abord une régression circulaire
+    """
+    Régression elliptique avec comme variables le centre de l'ellipse, ses demi-axes et son inclinaison
+    On initialise les paramètres de la régression elliptique
+    en faisant d'abord une régression circulaire
+    Entrées :
+        - x, y : points qui vont servir à la régression
+    Sorties :
+        - res : résultat de la régression (centre de l'ellipse et demi-grand axe "horizontal")
+    """
 
     # Initialisation des paramètres pour la régression circulaire
     c0 = np.array([(x.min() + x.max()) / 2, (y.min() + y.max()) / 2])
@@ -109,12 +144,21 @@ def regression_elliptique2(x, y):
 
 
 def regression_elliptique3(x, y, xd, yd, R):
-    # xd, yd : centre du disque de la Lune, R : rayon disque
-    # Dans cette regression elliptique, la fonction des résidus n'est plus la même
-    # residus2 respecte la forme des cratères (voir pdf JLH masque de visée)
-    # theta et b ne sont plus des variables :
-    # theta (inclinaison de l'ellipse) dépend de la position de l'ellipse sur le disque lunaire : theta est choisi tel que l'ellipse soit dirigée vers le centre du disque
-    # b dépend de la distance de l'ellipse au centre du disque : b = a*cos(beta) (voir calcul de cos(beta) dans le pdf de JLH)
+    """
+    Dans cette regression elliptique, la fonction des résidus n'est plus la même
+    residus2 respecte la forme des cratères (voir pdf JLH "masque de visée")
+    theta et b ne sont plus des variables :
+        - theta (inclinaison de l'ellipse) est choisi tel que l'ellipse soit dirigée vers le centre du disque
+        - b dépend de la distance de l'ellipse au centre du disque : b = a*cos(beta) (voir calcul de cos(beta) dans le pdf de JLH)
+    Entrées :
+        - x, y : points qui vont servir à la régression
+        - xd, yd : centre du disque de la Lune
+        - R : rayon du disque Lunaire
+    Sorties :
+        - res : résultat de la régression (centre de l'ellipse et demi-grand axe "horizontal")
+        - b : longueur demi-grand axe "vertical"
+        - theta : inclinaison de l'ellipse
+    """
 
     # Initialisation des variables pour la régression elliptique
     # On commence par une régression circulaire
@@ -132,9 +176,6 @@ def regression_elliptique3(x, y, xd, yd, R):
     # On définit le domaine des varaibles
     bounds = ([0, 0, 0] + [-np.inf] * N, [np.inf, np.inf, R] + [np.inf] * N)
 
-    # test0 = residus2(z0,x,y,xd,yd,R)
-    # print(z0)
-
     # Méthode des moindres carrés
     try:
         res = optimize.least_squares(
@@ -151,33 +192,7 @@ def regression_elliptique3(x, y, xd, yd, R):
         theta, cos_beta = masque_ell(cx, cy, xd, yd, R)
         b = a * cos_beta
     except ValueError:
-        print("Problème dans la détection de l'ellipses")
+        print("Problème dans la détection de l'ellipse")
         return None, None, None
 
     return res, b, theta
-
-
-"""
-from skimage import io
-
-im = io.imread("../images_test/test_ellipse.png")
-im = im[:,:,:3]
-im2 = rgb2gray(im)
-y,x = np.nonzero(im2==0)
-yd,xd = 199,329
-R = 160
-
-res, b, theta = regression_elliptique3(x,y,xd,yd,R)
-x_c,y_c,a = res.x[:3]
-phis = res.x[3:]
-print(x_c,y_c,a,b,theta*180/np.pi)
-
-coords_ellipse = equParametrique_ell(x_c,y_c,a,b,theta, phis)
-print(coords_ellipse.shape)
-cc,rr = np.int_(coords_ellipse[0,:]), np.int_(coords_ellipse[1,:])
-
-rr, cc = draw.ellipse_perimeter(int(y_c), int(x_c), int(b), int(a), theta, shape=im.shape)
-im[rr,cc] = [0,255,0]
-
-io.imshow(im)
-plt.show()"""

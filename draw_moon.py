@@ -1,19 +1,31 @@
-from libration import sellenographique_vers_pxl
+"""
+Contient les fonctions d'affichage
+"""
+
+from libration import selenographique_vers_pxl
 from data import getDims
 
 import numpy as np
 import matplotlib.pyplot as plt
-
 from skimage import draw
 
 
 def draw_crateres(
     ax, moon, names, phi, lambdaa, r_crat, xc, yc, R, theta, Dphi, Dlambda
 ):
-    # On affiche un cratère de coordonnées séléno (phi,lambda)
-    # Le rayon du cratère est donné en km
+    """
+    Affiche des cratères  de coordonnées sélénographiques phi,lambdaa sur la Lune moon
+    Entrées :
+        - ax : axe amtplotlib du dessin
+        - moon : numpy.array photo de la Lune (MxNx3)
+        - names, phi, lambda, r_crat : liste des noms, des latitudes, des longitudes, des rayons des cratères
+        - xc, yc, R, theta, Dphi, Dlambda : paramètres du modèle
+            (position du disque, rayon, inclinaison, angles de libration)
+    Sortie :
+        - moon : argument "moon" modifié
+    """
     R_lune = 1737
-    x, y = sellenographique_vers_pxl(phi, lambdaa, xc, yc, R, theta, Dphi, Dlambda)
+    x, y = selenographique_vers_pxl(phi, lambdaa, xc, yc, R, theta, Dphi, Dlambda)
     x_prime, y_prime = x - xc, yc - y
     orientation = np.arctan2(x_prime, y_prime)
     x_radius = r_crat * R / R_lune
@@ -72,8 +84,17 @@ def draw_crateres(
 
 
 def draw_meridienEquateur(moon, xc, yc, R, theta, Dphi, Dlambda):
+    """
+    Dessine le méridien 0° et l'équateur
+    Entrées :
+        - moon : numpy.array photo de la Lune (MxNx3)
+        - xc, yc, R, theta, Dphi, Dlambda : paramètres du modèle
+            (position du disque, rayon, inclinaison, angles de libration)
+    Sortie :
+        - moon : photo de la Lune avec méridien + équateur
+    """
     j = 1 + (min(moon.shape) // 500)
-    x_meridien, y_meridien = sellenographique_vers_pxl(
+    x_meridien, y_meridien = selenographique_vers_pxl(
         np.linspace(-np.pi / 2, np.pi / 2, 10000),
         np.zeros((10000)),
         xc,
@@ -83,7 +104,7 @@ def draw_meridienEquateur(moon, xc, yc, R, theta, Dphi, Dlambda):
         Dphi,
         Dlambda,
     )
-    x_equateur, y_equateur = sellenographique_vers_pxl(
+    x_equateur, y_equateur = selenographique_vers_pxl(
         np.zeros((10000)),
         np.linspace(-np.pi / 2, np.pi / 2, 10000),
         xc,
@@ -124,6 +145,19 @@ def draw_meridienEquateur(moon, xc, yc, R, theta, Dphi, Dlambda):
 def draw_resultatsLib(
     ax, moon, x, y, lambdaa_cible, phi_cible, xc, yc, R, theta, Dphi, Dlambda
 ):
+    """
+    Dessine en rouge le centre "réel" du cratère, en vert le centre trouvé à l'aide de la régression
+    La distance entre les 2 correspond au résidu
+    Entrées :
+        - ax : axe matplotlib du dessin
+        - moon : numpy.array photo la Lune (MxNx3)
+        - x, y : coordonnées des cratères sur la photo en pixel
+        - lambdaa_cible, phi_cible : coordonnées sélénographiques de ces cratères
+        - xc, yc, R, theta, Dphi, Dlambda : paramètres du modèle
+            (position du disque, rayon, inclinaison, angles de libration)
+    Sortie :
+        - moon : photo de la Lune modifiée
+    """
     disque_r, disque_c = draw.circle_perimeter(
         int(yc), int(xc), int(R), shape=moon.shape
     )
@@ -133,7 +167,7 @@ def draw_resultatsLib(
         rr, cc = draw.circle_perimeter(int(y[i]), int(x[i]), 10)
         ax.text(int(x[i]), int(y[i]), i + 1)
         moon[rr, cc] = [255, 0, 0]
-        x_c, y_c = sellenographique_vers_pxl(
+        x_c, y_c = selenographique_vers_pxl(
             phi_cible[i], lambdaa_cible[i], xc, yc, R, theta, Dphi, Dlambda
         )
         try:
@@ -141,9 +175,13 @@ def draw_resultatsLib(
         except IndexError:
             print("La calibration a probablement échouée.")
 
-    # plt.rc('text', usetex=True)
-
-    texte = " x = {:.1f} \n y = {:.1f} \n R = {:.1f} \n $\\theta$ = {:.2f}° \n $\Delta \lambda$ = {:.2f}° \n $\Delta \phi$ = {:.2f}°".format(
+    texte = " x = {:.1f} \n" \
+            + " y = {:.1f} \n" \
+            + " R = {:.1f} \n" \
+            + " $\\theta$ = {:.2f}°\n" \
+            + " $\Delta \lambda$ = {:.2f}° \n" \
+            + " $\Delta \phi$ = {:.2f}°"
+    texte = texte.format(
         xc, yc, R, theta * 180 / np.pi, Dlambda * 180 / np.pi, Dphi * 180 / np.pi
     )
     ax.text(
@@ -160,8 +198,19 @@ def draw_resultatsLib(
 
 
 def draw_final(ax, moon, database, res, x, y, lon, lat):
+    """
+    Dessine le rendu final : affichage des résultats de la libration, de certains cratères, du méridien et de l'équateur
+    Entrées :
+        - ax : axe matplotlib du dessin
+        - moon : numpy.array photo la Lune (MxNx3)
+        - database : base de données de cratères
+        - res : contient les résultats de la régression
+        - x, y : coordonnées en pixel des cratères qui ont servis à la régression
+        - lon, lat : coordonnées sélénographiques réelles des cratères qui ont servis à la régression
+    Sortie :
+        - moon : photo de la Lune modifiée
+    """
     xc, yc, R, theta, Dphi, Dlambda = res.x
-    # print("xc, yc, R, theta, Dphi, Dlambda : ",res.x) # avec les angles en radian
     print("Écart-type moyen : ", np.sqrt(res.cost / len(x)) * 180 / np.pi)
 
     # on dessine les mesures

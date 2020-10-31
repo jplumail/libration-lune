@@ -45,7 +45,7 @@ def pxl_vers_selenographique(x, y, xc, yc, R, theta, Dphi, Dlambda):
     return phi, lambdaa
 
 
-def sellenographique_vers_pxl(phi, lambdaa, xc, yc, R, theta, Dphi, Dlambda):
+def selenographique_vers_pxl(phi, lambdaa, xc, yc, R, theta, Dphi, Dlambda):
     """
     Permet de passer du référentiel lunaire au référentiel de la photo
     Entrées :

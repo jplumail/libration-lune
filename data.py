@@ -1,7 +1,16 @@
+"""
+Contient les fonctions permettant d'accéder à la base de données des cratères
+"""
+
 import numpy as np
 
 
 def loadData(filename):
+    """
+    Charge la base de données
+    Entrée : emplacement de la base de données
+    Sortie : numpy.array contenant la base de données
+    """
     with open(filename, "rb") as f:
         data = np.loadtxt(
             f, delimiter=";", skiprows=3, usecols=(0, 1, 5, 6, 7), dtype=str
@@ -10,6 +19,13 @@ def loadData(filename):
 
 
 def getRow(database, key):
+    """
+    Renvoie le l'index du cratère correspondant
+    Entrées :
+        - database : base de données (sortie de loadData)
+        - key : code UAI du cratère
+    Sortie : index du cratère dans la base de données OU -1 si le cratère est introuvable
+    """
     j = 0
     while j < len(database[:, 0]) and database[j, 1] != key:
         j += 1
@@ -20,6 +36,17 @@ def getRow(database, key):
 
 
 def getDim(database, row):
+    """
+    Renvoie les dimensions d'un cratère
+    Entrées :
+        - database : base de données (sortie de loadData)
+        - row : index du cratère dans la base de données
+    Sorties :
+        - nom du cratère
+        - latitude sélénographique du cratère
+        - longitude sélénographique du cratère
+        - rayon du cratère
+    """
     name, diam, lat, lon = (
         database[row, 0],
         float(database[row, 2]),
@@ -33,15 +60,32 @@ def getDim(database, row):
 
 
 def getRows(database, keys):
+    """
+    Même fonction que getRow pour plusieurs cratères
+    Entrées :
+        - database : base de données (sortie de loadData)
+        - keys : liste de codes UAI de cratères
+    Sortie : liste d'index des cratères
+    """
     rows = []
     for k in keys:
         row = getRow(database, k)
-        if row != -1:
-            rows.append(row)
+        rows.append(row)
     return rows
 
 
 def getDims(database, keys):
+    """
+    Même fonction que getDims pour plusieurs cratères
+    Entrées :
+        - database : base de données (sortie de loadData)
+        - keys : liste de codes UAI de cratères
+    Sorties :
+        - liste des noms des cratères
+        - liste des latitudes sélénographiques des cratères
+        - liste des longitudes sélénographiques des cratères
+        - liste des rayons des cratères
+    """
     rows = getRows(database, keys)
     names = []
     lat = []

@@ -1,5 +1,7 @@
-# Détection des contours et régression circulaire avec la méthode des moindres carrés totaux
-# (voir : https://fr.wikipedia.org/wiki/R%C3%A9gression_circulaire#M%C3%A9thode_des_moindres_carr%C3%A9s_totaux)
+"""
+Détection des contours et régression circulaire
+voir : https://fr.wikipedia.org/wiki/R%C3%A9gression_circulaire#M%C3%A9thode_des_moindres_carr%C3%A9s_totaux
+"""
 
 from cercle import regression_circulaire
 
@@ -13,7 +15,13 @@ from skimage.exposure import histogram
 
 
 def detection_disque(moon):
-    # moon de taille [MxNx1]
+    """
+    Détection du contour de la Lune
+    Entrée : image de Lune (MxNx1)
+    Sorties :
+        - xc, yc : cordonnées du centre du disque en pixel
+        - r : rayon du disque en pixels
+    """
 
     # On détecte le contour de la Lune avec un filtre de Canny
     # edges est une image binaire, 1 signifie qu'il y a un contour, 0 qu'il n'y a rien
@@ -65,6 +73,11 @@ def detection_disque(moon):
 
 
 def phase(moon):
+    """
+    Calcule la phase de la Lune avec un treshold
+    Entrée : photo de la Lune (MxNx1)
+    Sortie : phase en rad
+    """
     moon_light = rgb2hsv(moon)[:, :, 2]
     xc, yc, R = detection_disque(moon_light)
     print("rayon=", R)

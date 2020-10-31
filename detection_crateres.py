@@ -1,3 +1,7 @@
+"""
+Lance une interface graphique pour le repérage des cratères par l'utilisateur
+"""
+
 from ellipse import regression_elliptique3, regression_elliptique2
 from detection_disque import detection_disque
 
@@ -14,6 +18,16 @@ import re
 
 
 def detection_crateres(moon_original):
+    """
+    Lance l'interface graphique
+    Entrée : image de Lune (MxNx1)
+    Sortie :
+        - Liste des codes UAI des cratères identifiés
+        - Liste des informations utiles sur les cratères (centre_y, centre_x, b, a, inclinaison) (pxl)
+        - Centre du disque lunaire en y (pxl)
+        - Centre du disque lunaire en x (pxl)
+        - Rayon du disque lunaire (pxl)
+    """
     # moon de taille [MxNx1]
     # renvoie une liste de cratères avec leur centre en pixel + centre-rayon du disque
 
@@ -164,7 +178,11 @@ def detection_crateres(moon_original):
         crat_infos2 = []
         while rep != "Q":
             io.imshow(moon3)
-            affiche_num(crat_infos)
+            num_crat = 1
+            for crat in crat_infos:
+                c_y, c_x, _, _, _ = crat
+                plt.text(int(c_x), int(c_y), num_crat)
+                num_crat += 1
             plt.show()
             rep = (
                 input(
@@ -202,11 +220,3 @@ def detection_crateres(moon_original):
 
     crat_infos = np.array(crat_infos)
     return keys, crat_infos, yc, xc, R
-
-
-def affiche_num(crat_infos):
-    num_crat = 1
-    for crat in crat_infos:
-        c_y, c_x, b, a, theta = crat
-        plt.text(int(c_x), int(c_y), num_crat)
-        num_crat += 1
