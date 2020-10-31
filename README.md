@@ -17,7 +17,7 @@ Lancer le script `main.py` :
 
 Si vous voulez analyser votre propre image :
 
-    python main.py --immg_path mon-image.jpg
+    python main.py --img_path mon-image.jpg
 
 Le programme va détecter des cratères et les afficher dans une fenêtre. Vous devrez ensuite les identifier dans l'[Atlas virtuel de la Lune](https://www.ap-i.net/avl/start). En fermant la fenêtre, vous pourrez renseigner leur code L.U.N. un par un. Appuyez sur *q* quand vous avez fini. 
 
