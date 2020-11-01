@@ -1,5 +1,5 @@
 # Projet CODEV 2020
-Projet de 1ère année réalisé à l'IMT Atlantique sous la supervision de Jean Le Hir et d'Alain Peden.
+[Projet](http://www.astronomie-pointedudiable.fr/2020/09/les-librations-de-la-lune/) de 1ère année réalisé à l'IMT Atlantique sous la supervision de Jean Le Hir et d'Alain Peden.
 L'objectif est de trouver l'[état de libration](https://fr.wikipedia.org/wiki/Libration_lunaire) de la Lune (son orientation par rapport à l'observateur) à partir d'une photographie.
 Le programme développé est semi-automatique : l'utilisateur doit renseigner la position précise de quelques cratères connus au préalable. Pour lui faciliter la tâche, une détection automatique de cratères est faite.
 
@@ -19,7 +19,7 @@ Si vous voulez analyser votre propre image :
 
     python main.py --img_path mon-image.jpg
 
-Le programme va détecter des cratères et les afficher dans une fenêtre. Vous devrez ensuite les identifier dans l'[Atlas virtuel de la Lune](https://www.ap-i.net/avl/start). En fermant la fenêtre, vous pourrez renseigner leur code L.U.N. un par un. Appuyez sur *q* quand vous avez fini. 
+Le programme va détecter des cratères et les afficher dans une fenêtre. Vous devrez ensuite les identifier dans l'[Atlas virtuel de la Lune](https://www.ap-i.net/avl/start). En fermant la fenêtre, vous pourrez renseigner leur code L.U.N. un par un. Appuyez sur *q* quand vous avez fini.
 
 Le résultat s'affiche :
 - x, y : position du centre du disque lunaire
