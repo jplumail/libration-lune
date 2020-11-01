@@ -6,7 +6,7 @@ Le programme développé est semi-automatique : l'utilisateur doit renseigner la
 ![output](docs/images/output.png)
 
 ## Installation
-Python3 et pip doivent être installer.
+Python3 et pip doivent être installés.
 
     pip install numpy matplotlib scikit-image scipy
 
