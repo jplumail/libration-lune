@@ -46,8 +46,8 @@ def detection_crateres(moon_original):
 
     part_surface = 0.9
 
-    mask_r, mask_c = draw.circle(
-        yc, xc, R * part_surface, shape=moon.shape
+    mask_r, mask_c = draw.disk(
+        (np.around(yc).astype(int), np.around(xc).astype(int)), R*part_surface, shape=moon.shape
     )  # le masque est un peu plus petit que le disque (0.8*R)
     mask = np.zeros_like(moon_light, dtype="bool")
     mask[mask_r, mask_c] = True
